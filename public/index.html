@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>업로드 대기 중...</title>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div style="padding: 20px; font-family: sans-serif;">
+        <h2>업로드 대기 중...</h2>
+        <p>스마트폰으로 QR을 스캔하여 파일을 업로드하면 여기에 표시됩니다.</p>
+        <ul id="file-list" style="list-style: none; padding-left: 0;"></ul>
+      </div>
+  <script>
+    const path = window.location.pathname;
+    const sessionId = path.split('/').pop();
+    const socket = io();
+
+    socket.emit('join-session', sessionId);
+
+    socket.on('file-uploaded', file => {
+      const li = document.createElement('li');
+      li.innerHTML = `<a href="/uploads/${file.filename}" download>${file.originalname}</a>`;
+      document.getElementById('file-list').appendChild(li);
+    });
+  </script>
+</body>
+</html>
