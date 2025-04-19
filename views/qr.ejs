@@ -1,49 +1,120 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
   <head>
     <meta charset="UTF-8" />
     <title>QR 업로드</title>
-    <script src="/socket.io/socket.io.js"></script>
     <style>
       body {
-        font-family: sans-serif;
-        padding: 20px;
+        margin: 0;
+        padding: 0;
+        background-color: #93c2e7;
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
       }
-      #file-section {
-        display: none;
-        margin-top: 20px;
+
+      .container {
+        background-color: rgba(255, 255, 255, 0.4); /* 반투명 흰색 */
+        border-radius: 10px;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 30px;
+        width: 700px;
+        height: 400px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .divider {
+        width: 2px;
+        background-color: white;
+        margin: 0 20px;
+      }
+
+      img {
+        width: 200px;
+        height: 200px;
+        object-fit: contain;
+        margin-bottom: 10px;
+      }
+
+      h2 {
+        margin-bottom: 10px;
+        color: #333;
+      }
+
+      #file-list {
+        margin-top: 10px;
+        font-size: 14px;
+        color: #222;
+        text-align: center;
       }
     </style>
   </head>
   <body>
-    <h1>QR로 파일 업로드 하기</h1>
-    <img src="<%= qr %>" alt="QR Code" style="width: 250px;" />
-    <p>휴대폰으로 QR을 스캔해 파일을 업로드하세요.</p>
-
-    <div id="file-section">
-      <h2>업로드된 파일</h2>
-      <ul id="file-list"></ul>
+    <div class="container">
+      <div class="section">
+        <h2>QR로 파일 업로드</h2>
+        <img src="<%= qr %>" alt="QR Code" />
+        <p>휴대폰으로 QR을 스캔해보세요!</p>
+      </div>
+      <div class="divider"></div>
+      <div class="section" id="file-section">
+        <h2>업로드된 파일</h2>
+        <div id="file-list">아직 파일이 없습니다.</div>
+      </div>
     </div>
-
+    <script src="/socket.io/socket.io.js"></script>
     <script>
-      const sessionId = "<%= sessionId %>";
       const socket = io();
-
+      const sessionId = "<%= sessionId %>";
+      const fileList = document.getElementById("file-list");
+    
       socket.emit("join-session", sessionId);
-
-      socket.on("file-uploaded", file => {
-        const list = document.getElementById("file-list");
-        const li = document.createElement("li");
-        const a = document.createElement("a");
-        a.href = `/uploads/${file.filename}`;
-        a.textContent = file.originalname;
-        a.download = file.originalname;
-        li.appendChild(a);
-        list.appendChild(li);
-
-        // 파일 섹션이 안 보였다면 보여주기
-        document.getElementById("file-section").style.display = "block";
+    
+      socket.on("file-uploaded", (file) => {
+        // "아직 파일이 없습니다." 문구 제거
+        if (fileList.textContent.includes("아직 파일이 없습니다.")) {
+          fileList.innerHTML = "";
+        }
+    
+        const link = document.createElement("a");
+        link.href = `/uploads/${file.filename}`;
+        link.textContent = file.originalname;
+        link.download = file.originalname;
+        link.style.display = "block";
+    
+        // 안내 문구가 이미 있다면 잠시 제거
+        const note = document.getElementById("download-note");
+        if (note) {
+          fileList.removeChild(note);
+        }
+    
+        // 파일 링크 추가
+        fileList.appendChild(link);
+    
+        // 마지막 줄에 안내 문구 다시 추가
+        if (!document.getElementById("download-note")) {
+          const newNote = document.createElement("p");
+          newNote.id = "download-note";
+          newNote.textContent = "⬆️ 클릭하여 파일을 다운로드하세요.";
+          newNote.style.marginTop = "10px";
+          newNote.style.fontSize = "14px";
+          newNote.style.color = "#333";
+          fileList.appendChild(newNote);
+        }
       });
-    </script>
+    </script>    
+    
   </body>
 </html>
