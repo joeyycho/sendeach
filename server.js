@@ -26,11 +26,9 @@ app.get('/', async (req, res) => {
 
   const sessionId = uuidv4();
   
-// QR URL 만들기 (localhost 대신 내부 IP 직접 지정)
-const localIP = '192.168.0.8'; // ← 여기에 너 컴퓨터 IP 입력!
-const uploadURL = `http://${localIP}:3000/upload/${sessionId}`;
-
-//   const uploadURL = `${req.protocol}://${req.get('host')}/upload/${sessionId}`;
+  const baseUrl = 'https://sendeach.onrender.com/';
+  const uploadURL = `${baseUrl}/upload/${sessionId}`;
+  
   const qr = await QRCode.toDataURL(uploadURL);
 
   sessions[sessionId] = { files: [] };
