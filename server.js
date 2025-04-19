@@ -26,7 +26,7 @@ app.get('/', async (req, res) => {
 
   const sessionId = uuidv4();
   
-  const baseUrl = 'https://sendeach.onrender.com/';
+  const baseUrl = 'https://sendeach.onrender.com';
   const uploadURL = `${baseUrl}/upload/${sessionId}`;
   
   const qr = await QRCode.toDataURL(uploadURL);
