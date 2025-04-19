@@ -42,20 +42,25 @@ app.get('/upload/:sessionId', (req, res) => {
 });
 
 // ✅ 업로드 처리
-app.post('/upload/:sessionId', upload.single('file'), (req, res) => {
+app.post('/upload/:sessionId', upload.array('file'), (req, res) => {
   const { sessionId } = req.params;
   if (!sessions[sessionId]) return res.status(400).send('Invalid session');
 
-  sessions[sessionId].files.push(req.file);
-  io.to(sessionId).emit('file-uploaded', req.file);
-  
-    // 10분 후 자동 삭제
+  const uploadedFiles = req.files;
+
+  uploadedFiles.forEach(file => {
+    sessions[sessionId].files.push(file);
+    io.to(sessionId).emit('file-uploaded', file);
+
+    // 자동 삭제 타이머 설정
     setTimeout(() => {
-      fs.unlink(req.file.path, err => {
+      fs.unlink(file.path, err => {
         if (err) console.error('파일 삭제 실패:', err);
-        else console.log('파일 자동 삭제됨:', req.file.filename);
+        else console.log('파일 자동 삭제됨:', file.filename);
       });
-    }, 10 * 60 * 1000); // 10분 (ms 단위)  
+    }, 10 * 60 * 1000);
+  });
+
   res.send('파일이 업로드되었습니다.');
 });
 

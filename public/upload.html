@@ -15,11 +15,11 @@
   <div class="container">
     <h2>파일 업로드</h2>
     <form id="uploadForm" method="POST" enctype="multipart/form-data">
-      <input type="file" name="file" required />
+      <input type="file" name="file" id="file" multiple required/>
       <button type="submit">업로드</button>
     </form>
     <div class="status" id="status"></div>
-    <p style="margin-top: 20px; font-size: 0.9em; color: gray;">업로드된 파일은 5분 후 자동 삭제됩니다.</p>
+    <p style="margin-top: 20px; font-size: 0.9em; color: gray;">업로드된 파일은 10분 후 자동 삭제됩니다.</p>
   </div>
 
   <script>
