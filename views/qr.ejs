@@ -3,10 +3,47 @@
   <head>
     <meta charset="UTF-8" />
     <title>QR 업로드</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 20px;
+      }
+      #file-section {
+        display: none;
+        margin-top: 20px;
+      }
+    </style>
   </head>
   <body>
     <h1>QR로 파일 업로드 하기</h1>
-    <img src="<%= qr %>" alt="QR Code" width="200" />
-    <p>이 QR을 스캔해서 파일을 업로드해보세요!</p>
+    <img src="<%= qr %>" alt="QR Code" style="width: 250px;" />
+    <p>휴대폰으로 QR을 스캔해 파일을 업로드하세요.</p>
+
+    <div id="file-section">
+      <h2>업로드된 파일</h2>
+      <ul id="file-list"></ul>
+    </div>
+
+    <script>
+      const sessionId = "<%= sessionId %>";
+      const socket = io();
+
+      socket.emit("join-session", sessionId);
+
+      socket.on("file-uploaded", file => {
+        const list = document.getElementById("file-list");
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = `/uploads/${file.filename}`;
+        a.textContent = file.originalname;
+        a.download = file.originalname;
+        li.appendChild(a);
+        list.appendChild(li);
+
+        // 파일 섹션이 안 보였다면 보여주기
+        document.getElementById("file-section").style.display = "block";
+      });
+    </script>
   </body>
 </html>
