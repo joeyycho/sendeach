@@ -5,6 +5,7 @@ const QRCode = require('qrcode');
 const http = require('http');
 const path = require('path');
 const socketIO = require('socket.io');
+const fs = require('fs'); // 꼭 추가!
 
 const app = express();
 const server = http.createServer(app);
@@ -47,6 +48,14 @@ app.post('/upload/:sessionId', upload.single('file'), (req, res) => {
 
   sessions[sessionId].files.push(req.file);
   io.to(sessionId).emit('file-uploaded', req.file);
+  
+    // 10분 후 자동 삭제
+    setTimeout(() => {
+      fs.unlink(req.file.path, err => {
+        if (err) console.error('파일 삭제 실패:', err);
+        else console.log('파일 자동 삭제됨:', req.file.filename);
+      });
+    }, 10 * 60 * 1000); // 10분 (ms 단위)  
   res.send('파일이 업로드되었습니다.');
 });
 
