@@ -41,7 +41,7 @@ app.get('/upload/:sessionId', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'upload.html'));
 });
 
-app.get('/upload-pin', (req, res) => {
+app.get('/pin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pin-upload.html'));
 });
 
