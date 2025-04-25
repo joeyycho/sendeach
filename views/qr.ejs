@@ -1,166 +1,110 @@
 <!DOCTYPE html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap" rel="stylesheet">
-    <title>QR 업로드</title>
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        background-color: whitesmoke;
-        font-family: 'Noto Sans KR', sans-serif;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-      }
-
-      .container {
-        background-color: #93c3e77e; /* 반투명 흰색 */
-        border-radius: 10px;
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        padding: 30px;
-        width: 700px;
-        height: 400px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      }
-
-      .section {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .divider {
-        width: 2px;
-        background-color: white;
-        margin: 0 20px;
-      }
-
-      img {
-        width: 200px;
-        height: 200px;
-        object-fit: contain;
-        margin-bottom: 10px;
-      }
-
-      h2 {
-        margin-bottom: 10px;
-        color: #333;
-      }
-
-      #file-list {
-        margin-top: 10px;
-        font-size: 14px;
-        color: #222;
-        text-align: center;
-      }
-      .footer-signature {
-  margin-top: 20px;
-  text-align: right;
-  font-size: 12px;
-  color: #444;
-  font-family: 'Noto Sans KR', sans-serif;
-  opacity: 0.7;
-}
-.footer-signature a {
-  color: inherit;
-  text-decoration: none;
-}
-.footer-signature a:hover {
-  text-decoration: underline;
-}
-.page-wrapper {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  background-color: #b9e0fd;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo-placeholder {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  font-size: 20px;
-  font-weight: bold;
-  color: #333;
-  font-family: 'Noto Sans KR', sans-serif;
-  opacity: 0.8;
-}
-
-    </style>
-  </head>
-  <body>
-    <div class="page-wrapper">
-    <div class="logo-placeholder">
-      센디치
-    </div>    
-    <div class="container">
-      <div class="section">
+<head>
+  <meta charset="UTF-8">
+  <title>QR로 파일 업로드</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    .logo {
+      align-self: flex-start;
+      margin: 10px 0 0 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .box {
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 3px;
+      padding: 20px;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      width: 80%;
+      max-width: 800px;
+      margin: 20px 0;
+    }
+    .qr-section, .file-section {
+      flex: 1;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .divider {
+      width: 2px;
+      background: white;
+      margin: 0 10px;
+    }
+    .footer {
+      align-self: flex-end;
+      margin-top: 10px;
+      margin-right: 20px;
+      font-size: 14px;
+    }
+    .footer a {
+      font-weight: bold;
+      text-decoration: none;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">로고</div>
+    <div class="box">
+      <div class="qr-section">
         <h2>QR로 파일 업로드</h2>
         <img src="<%= qr %>" alt="QR Code" />
-        <p>휴대폰으로 QR을 스캔해보세요!</p>
+        <p>PIN 코드: <strong><%= pin %></strong></p>
       </div>
       <div class="divider"></div>
-      <div class="section" id="file-section">
+      <div class="file-section">
         <h2>업로드된 파일</h2>
-        <div id="file-list">아직 파일이 없습니다.</div>
+        <ul id="file-list">
+          <li id="no-file">아직 파일이 없습니다.</li>
+        </ul>
+        <p id="download-msg" style="display: none;">⬆️ 클릭하여 파일을 다운로드하세요.</p>
       </div>
     </div>
-    <div class="footer-signature">
-      👩‍💻 by <a href="https://github.com/joeyycho" target="_blank" rel="noopener noreferrer"><strong>joeyycho</strong></a>
-    </div>    
+    <div class="footer">
+      👩‍💻 by <a href="https://github.com/joeyycho" target="_blank">joeyycho</a>
+    </div>
   </div>
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-      const socket = io();
-      const sessionId = "<%= sessionId %>";
-      const fileList = document.getElementById("file-list");
-    
-      socket.emit("join-session", sessionId);
-    
-      socket.on("file-uploaded", (file) => {
-        // "아직 파일이 없습니다." 문구 제거
-        if (fileList.textContent.includes("아직 파일이 없습니다.")) {
-          fileList.innerHTML = "";
-        }
-    
-        const link = document.createElement("a");
-        link.href = `/uploads/${file.filename}`;
-        link.textContent = file.originalname;
-        link.download = file.originalname;
-        link.style.display = "block";
-    
-        // 안내 문구가 이미 있다면 잠시 제거
-        const note = document.getElementById("download-note");
-        if (note) {
-          fileList.removeChild(note);
-        }
-    
-        // 파일 링크 추가
-        fileList.appendChild(link);
-    
-        // 마지막 줄에 안내 문구 다시 추가
-        if (!document.getElementById("download-note")) {
-          const newNote = document.createElement("p");
-          newNote.id = "download-note";
-          newNote.textContent = "⬆️ 클릭하여 파일을 다운로드하세요.";
-          newNote.style.marginTop = "10px";
-          newNote.style.fontSize = "14px";
-          newNote.style.color = "#333";
-          fileList.appendChild(newNote);
-        }
-      });
-    </script>    
-    
-  </body>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const sessionId = '<%= sessionId %>';
+    socket.emit('join-session', sessionId);
+
+    const fileList = document.getElementById('file-list');
+    const noFile = document.getElementById('no-file');
+    const downloadMsg = document.getElementById('download-msg');
+
+    socket.on('file-uploaded', file => {
+      if (noFile) noFile.remove();
+
+      const link = document.createElement('a');
+      link.href = `/uploads/${file.filename}`;
+      link.innerText = file.originalname;
+      link.download = file.originalname;
+
+      const li = document.createElement('li');
+      li.appendChild(link);
+      fileList.appendChild(li);
+
+      downloadMsg.style.display = 'block';
+    });
+  </script>
+</body>
 </html>

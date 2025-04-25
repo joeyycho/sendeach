@@ -5,82 +5,72 @@ const QRCode = require('qrcode');
 const http = require('http');
 const path = require('path');
 const socketIO = require('socket.io');
-const fs = require('fs'); // 꼭 추가!
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
-// 파일 업로드 설정
-const upload = multer({ dest: 'uploads/' });
-
-// EJS 뷰 설정
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-
-// 세션 저장소
-const sessions = {};
-
-// ✅ QR 페이지 보여주기 (메인 라우트)
-app.get('/', async (req, res) => {
-  console.log('GET / 요청 들어옴 ✅');
-
-  const sessionId = uuidv4();
-  
-  const baseUrl = 'https://sendeach.onrender.com';
-  const uploadURL = `${baseUrl}/upload/${sessionId}`;
-  
-  const qr = await QRCode.toDataURL(uploadURL);
-
-  sessions[sessionId] = { files: [] };
-  res.render('qr', { sessionId, qr });
+const upload = multer({ 
+  dest: 'uploads/',
+  limits: { fileSize: 100 * 1024 * 1024 } // 100MB 제한
 });
 
-// ✅ 업로드 폼 페이지
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+app.use(express.static('public'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+const sessions = {}; // { sessionId: { files: [], pin: '123456' } }
+
+function generatePIN() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+app.get('/', async (req, res) => {
+  const sessionId = uuidv4();
+  const pin = generatePIN();
+  const uploadURL = `${req.protocol}://${req.get('host')}/upload/${sessionId}`;
+  const qr = await QRCode.toDataURL(uploadURL);
+
+  sessions[sessionId] = { files: [], pin };
+  res.render('qr', { sessionId, qr, pin });
+});
+
 app.get('/upload/:sessionId', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'upload.html'));
 });
 
-// ✅ 업로드 처리
+app.get('/upload-pin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pin-upload.html'));
+});
+
 app.post('/upload/:sessionId', upload.array('file'), (req, res) => {
   const { sessionId } = req.params;
   if (!sessions[sessionId]) return res.status(400).send('Invalid session');
 
   const uploadedFiles = req.files;
-
-  uploadedFiles.forEach(file => {
-    sessions[sessionId].files.push(file);
-    io.to(sessionId).emit('file-uploaded', file);
-
-    // 자동 삭제 타이머 설정
-    setTimeout(() => {
-      fs.unlink(file.path, err => {
-        if (err) console.error('파일 삭제 실패:', err);
-        else console.log('파일 자동 삭제됨:', file.filename);
-      });
-    }, 10 * 60 * 1000);
-  });
-
+  sessions[sessionId].files.push(...uploadedFiles);
+  io.to(sessionId).emit('file-uploaded', uploadedFiles);
   res.send('파일이 업로드되었습니다.');
 });
 
-// ✅ 프린터 화면 페이지
+app.post('/upload-by-pin', express.urlencoded({ extended: true }), (req, res) => {
+  const { pin } = req.body;
+  const sessionId = Object.keys(sessions).find(id => sessions[id].pin === pin);
+  if (!sessionId) return res.status(400).send('PIN이 잘못되었습니다.');
+  res.redirect(`/upload/${sessionId}`);
+});
+
 app.get('/session/:sessionId', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ✅ 소켓 연결
 io.on('connection', socket => {
   socket.on('join-session', sessionId => {
     socket.join(sessionId);
   });
 });
 
-// ✅ 정적 파일 처리 (❗ 맨 아래에 둬야 덮어쓰기 방지 가능)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use(express.static(path.join(__dirname, 'public')));
-
-// ✅ 서버 시작
 server.listen(3000, () => {
   console.log('서버가 http://localhost:3000 에서 실행 중입니다.');
 });
