@@ -25,13 +25,31 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // 핀번호 입력 후 업로드 처리
-app.post('/upload-pin', upload.single('file'), (req, res) => {
-  const { sessionId } = req.body;  // 핀번호가 sessionId로 처리될 것
-  if (!sessions[sessionId]) return res.status(400).send('Invalid session');
+// 기존의 multer 설정에서 단일 파일을 처리하는 부분을 여러 파일을 처리하는 것으로 수정
+app.post('/pin', upload.array('file', 30), (req, res) => {
+  const { sessionId } = req.body;  // 핀번호를 받음
+  const files = req.files;  // 여러 파일을 받음
 
-  sessions[sessionId].files.push(req.file);
-  io.to(sessionId).emit('file-uploaded', req.file);
-  res.send('파일이 업로드되었습니다.');
+  // 세션 ID가 유효한지 확인
+  if (!sessions[sessionId]) {
+    return res.status(400).send('유효하지 않은 핀 번호입니다.');
+  }
+
+  // 파일이 업로드되었는지 확인
+  if (!files || files.length === 0) {
+    return res.status(400).send('파일이 업로드되지 않았습니다.');
+  }
+
+  // 업로드된 파일들을 세션에 저장
+  sessions[sessionId].files.push(...files);
+  
+  // 파일 업로드가 완료되면 해당 세션에 업데이트
+  files.forEach(file => {
+    io.to(sessionId).emit('file-uploaded', file);
+  });
+
+  // 업로드가 완료된 후, 업로드된 파일 목록 페이지로 리디렉션
+  res.redirect(`/session/${sessionId}`);
 });
 
 app.set('view engine', 'ejs');
