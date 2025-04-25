@@ -17,7 +17,6 @@ const upload = multer({
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-app.use(express.static('public'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const sessions = {}; // { sessionId: { files: [], pin: '123456' } }
@@ -35,6 +34,8 @@ app.get('/', async (req, res) => {
   sessions[sessionId] = { files: [], pin };
   res.render('qr', { sessionId, qr, pin });
 });
+
+app.use(express.static('public'));
 
 app.get('/upload/:sessionId', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'upload.html'));
