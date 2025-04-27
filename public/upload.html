@@ -35,8 +35,8 @@
 <body>
   <div class="container">
     <h2>파일 업로드</h2>
-    <form id="uploadForm" method="POST" enctype="multipart/form-data">
-      <input type="file" name="file" id="file" multiple required/>
+    <form id="uploadForm" action="/upload/<%= sessionId %>" method="POST" enctype="multipart/form-data">
+      <input type="file" name="file" multiple required>
       <button type="submit">업로드</button>
     </form>
     <div class="status" id="status"></div

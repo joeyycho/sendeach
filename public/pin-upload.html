@@ -75,15 +75,10 @@
 <body>
   <div class="container">
     <h1>핀번호를 입력하세요</h1>
-    <form id="pin-form" action="/pin" method="POST" enctype="multipart/form-data">
-      <label for="sessionId">핀 번호:</label>
-      <input type="text" name="sessionId" id="sessionId" required /><br><br>
-
-      <label for="file">업로드할 파일:</label>
-      <input type="file" name="file" id="file" multiple required /><br><br>
-
-      <button type="submit">업로드</button>
-    </form>
+    <form action="/upload-by-pin" method="POST">
+      <input type="text" name="pin" placeholder="PIN 번호 입력" required>
+      <button type="submit">업로드 페이지 이동</button>
+    </form>    
     <div id="status" style="margin-top: 20px; color: green;"></div>
   </div>
 
