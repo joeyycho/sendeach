@@ -48,8 +48,13 @@ app.use('/uploads', express.static(uploadDir));
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
+// 메인 페이지
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // QR 코드 생성 및 세션 시작
-app.get('/', async (req, res) => {
+app.get('/qr', async (req, res) => {
   const sessionId = uuidv4();
   const pin = generatePIN();
   const uploadURL = `${req.protocol}://${req.get('host')}/upload/${sessionId}`;
