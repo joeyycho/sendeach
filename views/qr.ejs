@@ -57,6 +57,19 @@
       text-decoration: none;
       color: #333;
     }
+    .pin-button {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: #007acc;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background-color 0.2s;
+      margin-top: 20px;
+    }
+    .pin-button:hover {
+      background-color: #005fa3;
+    }
   </style>
 </head>
 <body>
@@ -75,6 +88,7 @@
           <li id="no-file">아직 파일이 없습니다.</li>
         </ul>
         <p id="download-msg" style="display: none;">⬆️ 클릭하여 파일을 다운로드하세요.</p>
+        <a href="/pin" class="pin-button">PIN으로 업로드하기</a>
       </div>
     </div>
     <div class="footer">
