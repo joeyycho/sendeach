@@ -10,12 +10,14 @@
     body {
       margin: 0;
       font-family: 'Noto Sans KR', sans-serif;
+      background-color: #f5f5f5;
     }
     .container {
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 20px;
+      min-height: 100vh;
     }
     .logo {
       align-self: flex-start;
@@ -23,20 +25,23 @@
       font-size: 20px;
       font-weight: bold;
     }
+    .main-box {
+      background: #e0e0e0;
+      border-radius: 40px;
+      padding: 40px;
+      width: 90%;
+      max-width: 1000px;
+      margin: 20px 0;
+    }
     .box {
-      background: rgba(255, 255, 255, 0.4);
-      border-radius: 3px;
-      padding: 20px;
       display: flex;
       flex-direction: row;
       justify-content: space-between;
-      width: 80%;
-      max-width: 800px;
-      margin: 20px 0;
+      width: 100%;
     }
     .qr-section, .file-section {
       flex: 1;
-      padding: 10px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -44,13 +49,13 @@
     .divider {
       width: 2px;
       background: white;
-      margin: 0 10px;
+      margin: 0 20px;
     }
     .footer {
-      align-self: flex-end;
-      margin-top: 10px;
-      margin-right: 20px;
-      font-size: 14px;
+      margin-top: auto;
+      padding: 20px;
+      text-align: center;
+      color: #666;
     }
     .footer a {
       font-weight: bold;
@@ -70,25 +75,43 @@
     .pin-button:hover {
       background-color: #005fa3;
     }
+    #file-list {
+      list-style: none;
+      padding: 0;
+      width: 100%;
+      max-width: 400px;
+    }
+    #file-list li {
+      margin: 10px 0;
+    }
+    #file-list a {
+      color: #333;
+      text-decoration: none;
+    }
+    #file-list a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="logo">SENDEACH</div>
-    <div class="box">
-      <div class="qr-section">
-        <h2>QR로 파일 업로드</h2>
-        <img src="<%= qr %>" alt="QR Code" />
-        <p>PIN 코드: <strong><%= pin %></strong></p>
-      </div>
-      <div class="divider"></div>
-      <div class="file-section">
-        <h2>업로드된 파일</h2>
-        <ul id="file-list">
-          <li id="no-file">아직 파일이 없습니다.</li>
-        </ul>
-        <p id="download-msg" style="display: none;">⬆️ 클릭하여 파일을 다운로드하세요.</p>
-        <a href="/pin" class="pin-button">PIN으로 업로드하기</a>
+    <div class="main-box">
+      <div class="box">
+        <div class="qr-section">
+          <h2>QR로 파일 업로드</h2>
+          <img src="<%= qr %>" alt="QR Code" />
+          <p>PIN 코드: <strong><%= pin %></strong></p>
+        </div>
+        <div class="divider"></div>
+        <div class="file-section">
+          <h2>업로드된 파일</h2>
+          <ul id="file-list">
+            <li id="no-file">아직 파일이 없습니다.</li>
+          </ul>
+          <p id="download-msg" style="display: none;">⬆️ 클릭하여 파일을 다운로드하세요.</p>
+          <a href="/pin" class="pin-button">PIN으로 업로드하기</a>
+        </div>
       </div>
     </div>
     <div class="footer">
