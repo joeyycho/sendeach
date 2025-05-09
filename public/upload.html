@@ -11,35 +11,35 @@
     button { margin-top: 20px; padding: 10px 20px; }
     .status { margin-top: 20px; color: green; }
     .footer-signature {
-  position: fixed;
-  bottom: 10px;
-  right: 15px;
-  font-size: 12px;
-  color: #444;
-  font-family: 'Noto Sans KR', sans-serif;
-  opacity: 0.7;
-  z-index: 999;
-  }
-  .footer-signature strong {
-  font-weight: 700;
-  }
-  .footer-signature a {
-  color: inherit;
-  text-decoration: none;
-}
-.footer-signature a:hover {
-  text-decoration: underline;
-}
+      position: fixed;
+      bottom: 10px;
+      right: 15px;
+      font-size: 12px;
+      color: #444;
+      font-family: 'Noto Sans KR', sans-serif;
+      opacity: 0.7;
+      z-index: 999;
+    }
+    .footer-signature strong {
+      font-weight: 700;
+    }
+    .footer-signature a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .footer-signature a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>파일 업로드</h2>
-    <form id="uploadForm" action="/upload/<%= sessionId %>" method="POST" enctype="multipart/form-data">
+    <form id="uploadForm" enctype="multipart/form-data">
       <input type="file" name="file" multiple required>
       <button type="submit">업로드</button>
     </form>
-    <div class="status" id="status"></div
+    <div class="status" id="status"></div>
     <p style="margin-top: 20px; font-size: 0.9em; color: gray;">업로드된 파일은 10분 후 자동 삭제됩니다.</p>
     <div class="footer-signature">
       👩‍💻 by <a href="https://github.com/joeyycho" target="_blank" rel="noopener noreferrer"><strong>joeyycho</strong></a>
@@ -50,12 +50,20 @@
     document.getElementById('uploadForm').addEventListener('submit', function(e) {
       e.preventDefault();
       const formData = new FormData(this);
-      fetch(window.location.pathname, {
+      const sessionId = window.location.pathname.split('/').pop();
+      
+      fetch(`/upload/${sessionId}`, {
         method: 'POST',
         body: formData
-      }).then(res => res.text()).then(msg => {
+      })
+      .then(res => res.text())
+      .then(msg => {
         document.getElementById('status').textContent = msg;
-      }).catch(() => {
+        if (msg.includes('✅')) {
+          this.reset();
+        }
+      })
+      .catch(() => {
         document.getElementById('status').textContent = '업로드에 실패했습니다.';
       });
     });

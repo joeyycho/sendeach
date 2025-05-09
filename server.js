@@ -56,11 +56,15 @@ app.get('/', async (req, res) => {
   const qr = await QRCode.toDataURL(uploadURL);
 
   sessions[sessionId] = { files: [], pin };
-  res.render('qr', { sessionId, qr, pin }); // qr.ejs에 sessionId와 qr 넘김
+  res.render('qr', { sessionId, qr, pin });
 });
 
 // 업로드 화면 (QR 접근)
 app.get('/upload/:sessionId', (req, res) => {
+  const { sessionId } = req.params;
+  if (!sessions[sessionId]) {
+    return res.status(404).send('세션을 찾을 수 없습니다.');
+  }
   res.sendFile(path.join(__dirname, 'public', 'upload.html'));
 });
 
@@ -72,9 +76,15 @@ app.get('/pin', (req, res) => {
 // 파일 업로드 (QR 방식)
 app.post('/upload/:sessionId', upload.array('file', 10), (req, res) => {
   const { sessionId } = req.params;
-  if (!sessions[sessionId]) return res.status(400).send('Invalid session');
+  if (!sessions[sessionId]) {
+    return res.status(400).send('❌ 유효하지 않은 세션입니다.');
+  }
 
   const uploadedFiles = req.files;
+  if (!uploadedFiles || uploadedFiles.length === 0) {
+    return res.status(400).send('❌ 파일이 선택되지 않았습니다.');
+  }
+
   sessions[sessionId].files.push(...uploadedFiles);
   uploadedFiles.forEach(file => {
     io.to(sessionId).emit('file-uploaded', file);
@@ -86,22 +96,33 @@ app.post('/upload/:sessionId', upload.array('file', 10), (req, res) => {
 // PIN 입력 후 업로드 이동
 app.post('/upload-by-pin', (req, res) => {
   const { pin } = req.body;
-  const sessionId = Object.keys(sessions).find(id => sessions[id].pin === pin);
+  if (!pin) {
+    return res.status(400).send('❌ PIN 번호를 입력해주세요.');
+  }
 
-  if (!sessionId) return res.status(400).send('❌ 유효하지 않은 PIN입니다.');
+  const sessionId = Object.keys(sessions).find(id => sessions[id].pin === pin);
+  if (!sessionId) {
+    return res.status(400).send('❌ 유효하지 않은 PIN입니다.');
+  }
 
   res.redirect(`/upload/${sessionId}`);
 });
 
 // 세션 화면
 app.get('/session/:sessionId', (req, res) => {
+  const { sessionId } = req.params;
+  if (!sessions[sessionId]) {
+    return res.status(404).send('세션을 찾을 수 없습니다.');
+  }
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // 소켓 연결
 io.on('connection', socket => {
   socket.on('join-session', sessionId => {
-    socket.join(sessionId);
+    if (sessions[sessionId]) {
+      socket.join(sessionId);
+    }
   });
 });
 
